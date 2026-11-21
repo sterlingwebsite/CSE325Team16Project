@@ -1,0 +1,20 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Visual Studio Code
+.vscode/
+
+# User-specific files
+*.rsuser
+*.sln.docstates
+
+# Local environment files
+.env
+.env.*
+!.env.example
