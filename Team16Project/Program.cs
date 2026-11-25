@@ -52,4 +52,11 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.MapPost("/Account/Logout", async (SignInManager<ApplicationUser> signInManager, ILogger<Program> logger) =>
+{
+    await signInManager.SignOutAsync();
+    logger.LogInformation("User signed out.");
+    return Results.Redirect("/");
+});
+
 app.Run();
