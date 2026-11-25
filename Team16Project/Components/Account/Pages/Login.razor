@@ -1,0 +1,67 @@
+@page "/Account/Login"
+@attribute [ExcludeFromInteractiveRouting]
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Log in</PageTitle>
+<h1>Log in</h1>
+
+<EditForm Model="Input" OnValidSubmit="LoginUser" FormName="login">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+
+    <div class="mb-3">
+        <label for="email">Email</label>
+        <InputText id="email" @bind-Value="Input.Email" class="form-control" autocomplete="username" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" @bind-Value="Input.Password" class="form-control"
+                   autocomplete="current-password" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p class="text-danger" role="alert">@message</p>
+    }
+
+    <button type="submit" class="btn btn-primary">Log in</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+    }
+
+    private string? message;
+
+    private async Task LoginUser(EditContext editContext)
+    {
+        var result = await SignInManager.PasswordSignInAsync(
+            Input.Email, Input.Password, isPersistent: false, lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            // Generic message avoids revealing whether the email exists.
+            message = "Invalid email or password.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        public string Password { get; set; } = "";
+    }
+}

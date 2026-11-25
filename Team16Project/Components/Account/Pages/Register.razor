@@ -1,0 +1,83 @@
+@page "/Account/Register"
+@attribute [ExcludeFromInteractiveRouting]
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Register</PageTitle>
+<h1>Create an account</h1>
+
+<EditForm Model="Input" OnValidSubmit="RegisterUser" FormName="register">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+
+    <div class="mb-3">
+        <label for="email">Email</label>
+        <InputText id="email" @bind-Value="Input.Email" class="form-control" autocomplete="username" />
+        <ValidationMessage For="() => Input.Email" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password">Password</label>
+        <InputText id="password" type="password" @bind-Value="Input.Password" class="form-control"
+                   autocomplete="new-password" />
+        <ValidationMessage For="() => Input.Password" class="text-danger" />
+    </div>
+
+    <div class="mb-3">
+        <label for="bio">Bio (optional)</label>
+        <InputTextArea id="bio" @bind-Value="Input.Bio" class="form-control" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <p class="text-danger" role="alert">@message</p>
+    }
+
+    <button type="submit" class="btn btn-primary">Register</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+    }
+
+    private string? message;
+
+    private async Task RegisterUser(EditContext editContext)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = Input.Email,
+            Email = Input.Email,
+            Bio = Input.Bio
+        };
+
+        var result = await UserManager.CreateAsync(user, Input.Password);
+        if (result.Succeeded)
+        {
+            await SignInManager.SignInAsync(user, isPersistent: false);
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            message = string.Join(" ", result.Errors.Select(e => e.Description));
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required, StringLength(100, MinimumLength = 8)]
+        public string Password { get; set; } = "";
+
+        [StringLength(500)]
+        public string? Bio { get; set; }
+    }
+}
